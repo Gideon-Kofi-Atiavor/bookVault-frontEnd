@@ -76,7 +76,7 @@ function EditBookPage() {
     )
   }
 
-  // 👇 Error state — shows if book could not be fetched
+  //  Error state — shows if book could not be fetched
   if (fetchError) {
     return (
       <div className="min-h-screen bg-gray-100">

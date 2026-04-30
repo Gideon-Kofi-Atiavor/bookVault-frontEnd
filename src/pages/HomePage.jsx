@@ -69,7 +69,7 @@ function HomePage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-100">
-        <Navbar />
+        <navbar />
         <div className="flex justify-center items-center mt-40">
           <p className="text-gray-500 text-lg">{t('loadingBooks')}</p>
         </div>
