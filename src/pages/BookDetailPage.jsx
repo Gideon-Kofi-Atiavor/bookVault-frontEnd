@@ -43,7 +43,7 @@ function BookDetailPage() {
       setDeleting(true)
       await API.delete(`/books/${id}`)
       setIsDeleteModalOpen(false)
-      setBook(null)             // Clear book first to avoid crash when rendering
+      setBook(null)             
       setShowSuccessModal(true)
     } catch {
       setError('Failed to delete book. Please try again.')
