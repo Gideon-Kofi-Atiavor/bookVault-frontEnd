@@ -1,72 +1,69 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { useTranslation } from 'react-i18next'
+// import { useTranslation } from 'react-i18next'
 import Navbar from '../components/Navbar'
+import SuccessModal from '../components/SuccessModal'
 import API from '../api/axios'
 
 function AddBookPage() {
   const navigate = useNavigate()
-  const { t } = useTranslation()
+  // const { t } = useTranslation()
 
-  // Tracks the form data
   const [formData, setFormData] = useState({
     bookName: '',
     price: '',
     countInStock: '',
     image: ''
   })
-
-  // checks any errors from the backend
   const [errors, setErrors] = useState([])
-
-  // Tracks if the form is being submitted
   const [loading, setLoading] = useState(false)
+  const [showSuccessModal, setShowSuccessModal] = useState(false)  
 
-  // Handles any input change and updates the right field
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value })
   }
 
-  // Handles form submission
   const handleSubmit = async (e) => {
     e.preventDefault()
     setLoading(true)
     setErrors([])
 
     try {
-        
-        await API.post('/books', formData)
-        
-        navigate('/', { state: { message: t('New Book Added Successfully') } })
+      await API.post('/books', formData)
+      setLoading(false)
+      setShowSuccessModal(true)  
     } catch (error) {
-        setLoading(false)
-        
-        if (error.response?.data?.errors) {
-            setErrors(error.response.data.errors)
-        } else {
-            setErrors([{ msg: 'Something went wrong. Please try again.' }])
-        }
+      setLoading(false)
+      if (error.response?.data?.errors) {
+        setErrors(error.response.data.errors)
+      } else {
+        setErrors([{ msg: 'Something went wrong. Please try again.' }])
+      }
     }
-}
+  }
 
-  
+  const handleSuccessClose = () => {
+    setShowSuccessModal(false)
+    navigate('/')  
+  }
 
   return (
     <div className="min-h-screen bg-gray-100">
-
-      {/* Navbar */}
       <Navbar />
 
-      {/* Main Content */}
+      {/* Success Modal */}
+      <SuccessModal
+        isOpen={showSuccessModal}
+        message="New Book Added Successfully!"
+        onClose={handleSuccessClose}
+      />
+
       <div className="max-w-2xl mx-auto px-6 py-10">
 
         {/* Page Header */}
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold text-gray-800">Add New Book</h2>
-          <Link
-            to="/"
-            className="text-blue-600 hover:underline text-sm"
-          >
+          <Link to="/" className="text-blue-600 hover:underline text-sm">
             ← Back to Home
           </Link>
         </div>
@@ -151,7 +148,6 @@ function AddBookPage() {
                 placeholder="Enter image URL"
                 className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
-              {/* Image Preview */}
               {formData.image && (
                 <img
                   src={formData.image}

@@ -12,8 +12,8 @@ function BookDetailPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [deleting, setDeleting] = useState(false)
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)   // NEW
-  const [showSuccessModal, setShowSuccessModal] = useState(false)     // NEW
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
+  const [showSuccessModal, setShowSuccessModal] = useState(false)
 
   useEffect(() => {
     const fetchBook = async () => {
@@ -30,23 +30,21 @@ function BookDetailPage() {
     fetchBook()
   }, [id])
 
-  // Opens the delete confirmation modal
   const handleDeleteClick = () => {
     setIsDeleteModalOpen(true)
   }
 
-  // Cancels delete
   const handleCancelDelete = () => {
     setIsDeleteModalOpen(false)
   }
 
-  // Confirms and performs delete
   const handleConfirmDelete = async () => {
     try {
       setDeleting(true)
       await API.delete(`/books/${id}`)
       setIsDeleteModalOpen(false)
-      setShowSuccessModal(true)   // Show success modal after delete
+      setBook(null)             // Clear book first to avoid crash when rendering
+      setShowSuccessModal(true)
     } catch {
       setError('Failed to delete book. Please try again.')
       setDeleting(false)
@@ -54,7 +52,6 @@ function BookDetailPage() {
     }
   }
 
-  // After user clicks OK on success modal, go home
   const handleSuccessClose = () => {
     setShowSuccessModal(false)
     navigate('/')
@@ -84,6 +81,20 @@ function BookDetailPage() {
     )
   }
 
+  // After delete, book is null — show only the success modal, skip book detail rendering
+  if (showSuccessModal) {
+    return (
+      <div className="min-h-screen bg-gray-100">
+        <Navbar />
+        <SuccessModal
+          isOpen={true}
+          message="Book deleted successfully!"
+          onClose={handleSuccessClose}
+        />
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-gray-100">
       <Navbar />
@@ -94,13 +105,6 @@ function BookDetailPage() {
         onConfirm={handleConfirmDelete}
         onCancel={handleCancelDelete}
         bookName={book?.bookName || ''}
-      />
-
-      {/* Success Modal */}
-      <SuccessModal
-        isOpen={showSuccessModal}
-        message="Book deleted successfully!"
-        onClose={handleSuccessClose}
       />
 
       <div className="max-w-2xl mx-auto px-6 py-10">
