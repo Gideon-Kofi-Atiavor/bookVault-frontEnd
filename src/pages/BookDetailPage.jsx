@@ -1,24 +1,27 @@
 import { useState, useEffect } from 'react'
 import { Link, useParams, useNavigate } from 'react-router-dom'
 import Navbar from '../components/Navbar'
+import DeleteModal from '../components/DeleteModal'
+import SuccessModal from '../components/SuccessModal'
 import API from '../api/axios'
 
 function BookDetailPage() {
-  const { id } = useParams()        // This  gets the book ID from the URL
+  const { id } = useParams()
   const navigate = useNavigate()
   const [book, setBook] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [deleting, setDeleting] = useState(false)
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)   // NEW
+  const [showSuccessModal, setShowSuccessModal] = useState(false)     // NEW
 
-  // Fetch the single book when page loads
   useEffect(() => {
     const fetchBook = async () => {
       try {
         const response = await API.get(`/books/${id}`)
         setBook(response.data)
         setLoading(false)
-      } catch  {
+      } catch {
         setError('Book not found or something went wrong.')
         setLoading(false)
       }
@@ -27,19 +30,34 @@ function BookDetailPage() {
     fetchBook()
   }, [id])
 
-  // Handle delete
-  const handleDelete = async () => {
-    const confirm = window.confirm('Are you sure you want to delete this book?')
-    if (!confirm) return
+  // Opens the delete confirmation modal
+  const handleDeleteClick = () => {
+    setIsDeleteModalOpen(true)
+  }
 
+  // Cancels delete
+  const handleCancelDelete = () => {
+    setIsDeleteModalOpen(false)
+  }
+
+  // Confirms and performs delete
+  const handleConfirmDelete = async () => {
     try {
       setDeleting(true)
       await API.delete(`/books/${id}`)
-      navigate('/')
-    } catch  {
+      setIsDeleteModalOpen(false)
+      setShowSuccessModal(true)   // Show success modal after delete
+    } catch {
       setError('Failed to delete book. Please try again.')
       setDeleting(false)
+      setIsDeleteModalOpen(false)
     }
+  }
+
+  // After user clicks OK on success modal, go home
+  const handleSuccessClose = () => {
+    setShowSuccessModal(false)
+    navigate('/')
   }
 
   // Loading state
@@ -70,15 +88,27 @@ function BookDetailPage() {
     <div className="min-h-screen bg-gray-100">
       <Navbar />
 
+      {/* Delete Confirmation Modal */}
+      <DeleteModal
+        isOpen={isDeleteModalOpen}
+        onConfirm={handleConfirmDelete}
+        onCancel={handleCancelDelete}
+        bookName={book?.bookName || ''}
+      />
+
+      {/* Success Modal */}
+      <SuccessModal
+        isOpen={showSuccessModal}
+        message="Book deleted successfully!"
+        onClose={handleSuccessClose}
+      />
+
       <div className="max-w-2xl mx-auto px-6 py-10">
 
         {/* Page Header */}
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold text-gray-800">Book Details</h2>
-          <Link
-            to="/"
-            className="text-blue-600 hover:underline text-sm"
-          >
+          <Link to="/" className="text-blue-600 hover:underline text-sm">
             ← Back to Home
           </Link>
         </div>
@@ -138,7 +168,7 @@ function BookDetailPage() {
                 Edit Book
               </Link>
               <button
-                onClick={handleDelete}
+                onClick={handleDeleteClick}
                 disabled={deleting}
                 className="flex-1 bg-red-500 text-white font-semibold py-2 rounded-lg hover:bg-red-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
               >

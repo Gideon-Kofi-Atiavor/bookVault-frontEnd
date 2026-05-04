@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link, useParams, useNavigate } from 'react-router-dom'
 import Navbar from '../components/Navbar'
+import SuccessModal from '../components/SuccessModal'
 import API from '../api/axios'
 
 function EditBookPage() {
@@ -16,7 +17,8 @@ function EditBookPage() {
   const [errors, setErrors] = useState([])
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
-  const [fetchError, setFetchError] = useState(null)  
+  const [fetchError, setFetchError] = useState(null)
+  const [showSuccessModal, setShowSuccessModal] = useState(false)   // NEW
 
   useEffect(() => {
     const fetchBook = async () => {
@@ -33,7 +35,7 @@ function EditBookPage() {
         setLoading(false)
       } catch (error) {
         console.error('Error fetching book:', error)
-        setFetchError('Failed to load book. Please go back and try again.')  
+        setFetchError('Failed to load book. Please go back and try again.')
         setLoading(false)
       }
     }
@@ -52,7 +54,7 @@ function EditBookPage() {
 
     try {
       await API.put(`/books/${id}`, formData)
-      navigate('/')   //  goes back to homepage after update
+      setShowSuccessModal(true)   // Show modal instead of navigating immediately
     } catch (error) {
       console.error('Error updating book:', error)
       setSubmitting(false)
@@ -62,6 +64,11 @@ function EditBookPage() {
         setErrors([{ msg: 'Something went wrong. Please try again.' }])
       }
     }
+  }
+
+  const handleSuccessClose = () => {
+    setShowSuccessModal(false)
+    navigate('/')   // Navigate home only after user clicks OK
   }
 
   // Loading state
@@ -76,17 +83,14 @@ function EditBookPage() {
     )
   }
 
-  //  Error state — shows if book could not be fetched
+  // Error state
   if (fetchError) {
     return (
       <div className="min-h-screen bg-gray-100">
         <Navbar />
         <div className="flex flex-col justify-center items-center mt-40 gap-4">
           <p className="text-red-500 text-lg">{fetchError}</p>
-          <Link
-            to="/"
-            className="text-blue-600 hover:underline text-sm"
-          >
+          <Link to="/" className="text-blue-600 hover:underline text-sm">
             ← Back to Home
           </Link>
         </div>
@@ -98,15 +102,19 @@ function EditBookPage() {
     <div className="min-h-screen bg-gray-100">
       <Navbar />
 
+      {/* Success Modal */}
+      <SuccessModal
+        isOpen={showSuccessModal}
+        message="Book updated successfully!"
+        onClose={handleSuccessClose}
+      />
+
       <div className="max-w-2xl mx-auto px-6 py-10">
 
         {/* Page Header */}
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold text-gray-800">Edit Book</h2>
-          <Link
-            to="/"
-            className="text-blue-600 hover:underline text-sm"
-          >
+          <Link to="/" className="text-blue-600 hover:underline text-sm">
             ← Back to Home
           </Link>
         </div>
@@ -114,7 +122,7 @@ function EditBookPage() {
         {/* Form Card */}
         <div className="bg-white rounded-xl shadow-md p-8">
 
-          {/* Error Messages from validation */}
+          {/* Error Messages */}
           {errors.length > 0 && (
             <div className="bg-red-50 border border-red-300 rounded-lg p-4 mb-6">
               <p className="text-red-600 font-semibold mb-2">
